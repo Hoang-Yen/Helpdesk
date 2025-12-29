@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
-import { ChevronRight, ThumbsUp, ThumbsDown, Clock, Tag } from 'lucide-react';
+import { ChevronRight, ThumbsUp, ThumbsDown, Clock } from 'lucide-react';
 import { useData } from '../DataContext';
-import { marked } from 'marked';
 
 export const Article: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -48,21 +47,10 @@ export const Article: React.FC = () => {
                     </span>
                   </div>
                   <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{article.title}</h1>
-                  <div className="flex items-center text-gray-400 text-sm mb-4">
+                  <div className="flex items-center text-gray-400 text-sm">
                     <Clock className="h-4 w-4 mr-1.5" />
                     Last updated {article.lastUpdated}
                   </div>
-                  
-                  {article.tags && article.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {article.tags.map(tag => (
-                        <span key={tag} className="inline-flex items-center text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                          <Tag className="w-3 h-3 mr-1" />
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
                 </header>
 
                 <div className="prose prose-teal max-w-none text-gray-600">
@@ -73,7 +61,7 @@ export const Article: React.FC = () => {
                       <h2 className="text-2xl font-bold text-gray-900 mb-4">{section.title}</h2>
                       <div 
                         className="leading-relaxed space-y-4"
-                        dangerouslySetInnerHTML={{ __html: marked.parse(section.content) as string }}
+                        dangerouslySetInnerHTML={{ __html: section.content }}
                       />
                     </div>
                   ))}

@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Logo } from './Logo';
 
 export const Footer: React.FC = () => {
@@ -15,7 +14,6 @@ export const Footer: React.FC = () => {
             <a href="#" className="hover:text-spoux-700">Privacy Policy</a>
             <a href="#" className="hover:text-spoux-700">Terms of Service</a>
             <a href="#" className="hover:text-spoux-700">Contact Support</a>
-            <Link to="/admin" className="hover:text-spoux-700">Admin</Link>
           </div>
         </div>
         <div className="mt-8 text-center md:text-left text-sm text-gray-400">

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Article, Category, VideoTutorial } from './types';
 import { ARTICLES as INITIAL_ARTICLES, CATEGORIES as INITIAL_CATEGORIES, VIDEOS as INITIAL_VIDEOS } from './data';
+import { getArticlesFromSheet } from './lib/sheets';
 
 interface DataContextType {
   articles: Article[];
@@ -9,6 +10,7 @@ interface DataContextType {
   updateArticle: (article: Article) => void;
   addArticle: (article: Article) => void;
   deleteArticle: (id: string) => void;
+  importFromSheets: () => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -51,8 +53,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     saveArticles(articles.filter(a => a.id !== id));
   };
 
+  const importFromSheets = async () => {
+    const sheetArticles = await getArticlesFromSheet();
+    if (sheetArticles.length > 0) {
+      saveArticles(sheetArticles);
+    } else {
+      throw new Error("No data found in Google Sheets");
+    }
+  };
+
   return (
-    <DataContext.Provider value={{ articles, categories, videos, updateArticle, addArticle, deleteArticle }}>
+    <DataContext.Provider value={{ articles, categories, videos, updateArticle, addArticle, deleteArticle, importFromSheets }}>
       {children}
     </DataContext.Provider>
   );

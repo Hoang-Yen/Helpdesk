@@ -1,41 +1,20 @@
 import React, { useState } from 'react';
 import { useData } from '../DataContext';
 import { Article, Section } from '../types';
-import { Plus, Trash2, Edit, Save, ArrowLeft, LayoutGrid, FileText, Lock, LogOut } from 'lucide-react';
+import { Plus, Trash2, Edit, Save, ArrowLeft, LayoutGrid, FileText, Database, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Logo } from '../components/Logo';
 
 export const Admin: React.FC = () => {
-  const { articles, updateArticle, addArticle, deleteArticle, categories } = useData();
+  const { articles, updateArticle, addArticle, deleteArticle, categories, importFromSheets } = useData();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  
-  // Auth State
-  const [password, setPassword] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem('spoux_admin_auth') === 'true');
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState<Article | null>(null);
-  const [tagInput, setTagInput] = useState('');
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === 'spoux2025') {
-      setIsAuthenticated(true);
-      sessionStorage.setItem('spoux_admin_auth', 'true');
-    } else {
-      alert('Incorrect password');
-    }
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    sessionStorage.removeItem('spoux_admin_auth');
-  };
 
   const startEdit = (article: Article) => {
     setFormData(JSON.parse(JSON.stringify(article))); // Deep copy
-    setTagInput(article.tags ? article.tags.join(', ') : '');
     setEditingId(article.id);
     setIsCreating(false);
   };
@@ -46,31 +25,26 @@ export const Admin: React.FC = () => {
       categoryId: categories[0].id,
       title: '',
       excerpt: '',
-      tags: [],
       sections: [],
       relatedArticleIds: [],
       lastUpdated: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       isPopular: false
     };
     setFormData(newArticle);
-    setTagInput('');
     setIsCreating(true);
     setEditingId('new');
   };
 
   const handleSave = () => {
-    if (!formData || !formData.title || !formData.id) {
-      alert("Title and ID are required");
+    if (!formData || !formData.title) {
+      alert("Title is required");
       return;
     }
     
-    // Auto-generate ID if empty
-    if (!formData.id.trim()) {
+    // Auto-generate ID if empty (for simple UX)
+    if (!formData.id || !formData.id.trim()) {
          formData.id = formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
     }
-
-    // Process Tags
-    formData.tags = tagInput.split(',').map(t => t.trim()).filter(t => t !== '');
 
     if (isCreating) {
       if (articles.some(a => a.id === formData.id)) {
@@ -90,6 +64,20 @@ export const Admin: React.FC = () => {
   const handleDelete = (id: string) => {
     if (confirm("Are you sure you want to delete this article? This action cannot be undone.")) {
       deleteArticle(id);
+    }
+  };
+
+  const handleImport = async () => {
+    if (confirm("This will replace all your current articles with data from Google Sheets. Continue?")) {
+      setIsSyncing(true);
+      try {
+        await importFromSheets();
+        alert("Successfully imported articles from Google Sheets!");
+      } catch (e) {
+        alert("Error importing from sheets: " + (e as Error).message);
+      } finally {
+        setIsSyncing(false);
+      }
     }
   };
 
@@ -119,49 +107,11 @@ export const Admin: React.FC = () => {
     setFormData({ ...formData, sections: newSections });
   };
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center px-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-           <div className="text-center mb-8">
-             <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-spoux-50 text-spoux-700 mb-4">
-               <Lock className="h-8 w-8" />
-             </div>
-             <h2 className="text-2xl font-bold text-gray-900">Admin Access</h2>
-             <p className="text-gray-500 mt-2">Please enter the password to manage the help center.</p>
-           </div>
-           <form onSubmit={handleLogin} className="space-y-4">
-             <div>
-               <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-               <input 
-                 type="password" 
-                 value={password}
-                 onChange={(e) => setPassword(e.target.value)}
-                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-spoux-500 focus:border-spoux-500"
-                 placeholder="Enter password..."
-                 autoFocus
-               />
-             </div>
-             <button 
-               type="submit"
-               className="w-full bg-spoux-700 text-white font-bold py-3 rounded-lg hover:bg-spoux-800 transition-colors shadow-sm"
-             >
-               Login
-             </button>
-           </form>
-           <div className="mt-6 text-center">
-             <Link to="/" className="text-sm text-gray-400 hover:text-spoux-600">Back to Help Center</Link>
-           </div>
-        </div>
-      </div>
-    );
-  }
-
   // Render Editor
   if (editingId && formData) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-20">
             <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <button 
@@ -227,16 +177,6 @@ export const Admin: React.FC = () => {
                             ))}
                         </select>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Tags (comma separated)</label>
-                        <input 
-                            type="text" 
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-spoux-500 focus:border-spoux-500"
-                            value={tagInput}
-                            onChange={(e) => setTagInput(e.target.value)}
-                            placeholder="e.g. billing, setup, api"
-                        />
-                    </div>
                     <div className="flex items-center pt-6">
                          <label className="flex items-center gap-2 cursor-pointer">
                              <input 
@@ -256,7 +196,7 @@ export const Admin: React.FC = () => {
                     <h2 className="text-xl font-bold text-gray-900">Content Sections</h2>
                     <button 
                         onClick={addSection}
-                        className="flex items-center gap-2 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 shadow-sm"
+                        className="flex items-center gap-2 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
                     >
                         <Plus className="w-4 h-4" /> Add Section
                     </button>
@@ -283,17 +223,15 @@ export const Admin: React.FC = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Content (Markdown Supported)</label>
+                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Content (HTML allowed)</label>
                             <textarea 
                                 className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-spoux-500 focus:border-spoux-500 font-mono text-sm"
-                                rows={8}
+                                rows={6}
                                 value={section.content}
                                 onChange={(e) => updateSection(idx, 'content', e.target.value)}
-                                placeholder="Write your content here. Markdown is supported (e.g., **bold**, *italic*, [link](url))..."
+                                placeholder="<p>Enter your content here...</p>"
                             />
-                            <p className="mt-2 text-xs text-gray-400 flex justify-between">
-                              <span>Supports Markdown & HTML</span>
-                            </p>
+                            <p className="mt-1 text-xs text-gray-400">Supports HTML tags like &lt;p&gt;, &lt;ul&gt;, &lt;strong&gt; etc.</p>
                         </div>
                     </div>
                 ))}
@@ -311,16 +249,20 @@ export const Admin: React.FC = () => {
        <div className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
              <div className="flex items-center gap-3">
-                 <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                    <Logo className="w-6 h-6 text-spoux-700" />
-                 </Link>
-                 <span className="text-gray-300">|</span>
+                 <div className="bg-spoux-100 p-2 rounded-lg text-spoux-700">
+                     <LayoutGrid className="w-5 h-5" />
+                 </div>
                  <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
              </div>
              <div className="flex items-center gap-4">
                  <Link to="/" className="text-sm font-medium text-gray-500 hover:text-spoux-700">View Site</Link>
-                 <button onClick={handleLogout} className="p-2 text-gray-400 hover:text-gray-600" title="Logout">
-                    <LogOut className="w-5 h-5" />
+                 <button 
+                    onClick={handleImport}
+                    disabled={isSyncing}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium shadow-sm disabled:opacity-50"
+                 >
+                     <Database className="w-4 h-4" />
+                     {isSyncing ? <RefreshCw className="w-4 h-4 animate-spin" /> : "Sync from Sheets"}
                  </button>
                  <button 
                     onClick={startCreate}
@@ -340,7 +282,6 @@ export const Admin: React.FC = () => {
                       <tr>
                           <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Article</th>
                           <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Category</th>
-                          <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Tags</th>
                           <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Last Updated</th>
                           <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                       </tr>
@@ -356,16 +297,6 @@ export const Admin: React.FC = () => {
                                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                                       {categories.find(c => c.id === article.categoryId)?.name}
                                   </span>
-                              </td>
-                              <td className="px-6 py-4">
-                                  <div className="flex gap-1 flex-wrap">
-                                      {article.tags?.slice(0, 2).map(tag => (
-                                          <span key={tag} className="inline-flex text-[10px] bg-spoux-50 text-spoux-600 px-1.5 py-0.5 rounded border border-spoux-100">
-                                              {tag}
-                                          </span>
-                                      ))}
-                                      {article.tags?.length > 2 && <span className="text-[10px] text-gray-400">+{article.tags.length - 2}</span>}
-                                  </div>
                               </td>
                               <td className="px-6 py-4 text-sm text-gray-500">
                                   {article.lastUpdated}
@@ -395,7 +326,7 @@ export const Admin: React.FC = () => {
               {articles.length === 0 && (
                   <div className="p-12 text-center text-gray-500">
                       <FileText className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                      <p>No articles found. Create your first one!</p>
+                      <p>No articles found. Create your first one or Sync from Sheets!</p>
                   </div>
               )}
           </div>

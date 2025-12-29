@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, FileText, ChevronRight, Tag } from 'lucide-react';
+import { Search, X, FileText, ChevronRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useData } from '../DataContext';
 import { Article } from '../types';
@@ -35,8 +35,7 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
     const lowerQuery = query.toLowerCase();
     const filtered = articles.filter(article => 
       article.title.toLowerCase().includes(lowerQuery) || 
-      article.excerpt.toLowerCase().includes(lowerQuery) ||
-      article.tags?.some(tag => tag.toLowerCase().includes(lowerQuery))
+      article.excerpt.toLowerCase().includes(lowerQuery)
     );
     setResults(filtered);
   }, [query, articles]);
@@ -70,7 +69,7 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
             ref={inputRef}
             type="text"
             className="w-full h-14 pl-12 pr-12 text-lg text-gray-900 placeholder-gray-400 border-0 focus:ring-0 focus:outline-none"
-            placeholder="Search for articles, guides, or tags..."
+            placeholder="Search for articles, guides, or troubleshooting..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -131,12 +130,6 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
                             <span className="text-spoux-600 font-medium">{category?.name}</span>
                             <span className="mx-1.5">&middot;</span>
                             <span className="truncate">{highlightMatch(article.excerpt, query)}</span>
-                            {article.tags?.some(t => t.toLowerCase().includes(query.toLowerCase())) && (
-                              <span className="ml-2 inline-flex items-center text-gray-400">
-                                <Tag className="w-3 h-3 mr-1" />
-                                {article.tags.find(t => t.toLowerCase().includes(query.toLowerCase()))}
-                              </span>
-                            )}
                           </div>
                         </div>
                         <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-spoux-400" />

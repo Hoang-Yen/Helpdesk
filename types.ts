@@ -10,7 +10,7 @@ export interface Category {
 export interface Section {
   id: string;
   title: string;
-  content: string; // Markdown content
+  content: string; // Changed from ReactNode to string for HTML content
 }
 
 export interface Article {
@@ -18,7 +18,6 @@ export interface Article {
   categoryId: string;
   title: string;
   excerpt: string;
-  tags: string[];
   sections: Section[];
   relatedArticleIds: string[];
   isPopular?: boolean;

@@ -35,23 +35,31 @@ export const ARTICLES: Article[] = [
     excerpt: 'Get your first project up and running in less than 5 minutes.',
     isPopular: true,
     lastUpdated: 'Oct 24, 2023',
-    tags: ['onboarding', 'setup', 'first-steps'],
     relatedArticleIds: ['inviting-team-members', 'setting-up-integrations'],
     sections: [
       {
         id: 'intro',
         title: 'Introduction',
-        content: 'Welcome to SpouX! This guide will walk you through the essential steps to launch your first idea validation campaign.'
+        content: '<p>Welcome to SpouX! This guide will walk you through the essential steps to launch your first idea validation campaign.</p>'
       },
       {
         id: 'create-account',
         title: '1. Create your account',
-        content: 'If you haven\'t already, sign up at **SpouX.com**. You\'ll need to verify your email address before continuing.'
+        content: '<p>If you haven\'t already, sign up at SpouX.com. You\'ll need to verify your email address before continuing.</p>'
       },
       {
         id: 'first-project',
         title: '2. Create your first project',
-        content: 'Click the **"New Project"** button in the dashboard top-right corner.\n\n* Give your project a name (e.g., "SaaS Idea 2024").\n* Select your target industry.\n* Choose a validation goal (e.g., "Collect 100 emails").'
+        content: `
+          <div class="space-y-4">
+            <p>Click the <strong>"New Project"</strong> button in the dashboard top-right corner.</p>
+            <ul class="list-disc pl-5 space-y-2">
+              <li>Give your project a name (e.g., "SaaS Idea 2024").</li>
+              <li>Select your target industry.</li>
+              <li>Choose a validation goal (e.g., "Collect 100 emails").</li>
+            </ul>
+          </div>
+        `
       }
     ]
   },
@@ -62,13 +70,12 @@ export const ARTICLES: Article[] = [
     excerpt: 'Collaborate with your team by adding them to your workspace.',
     isPopular: false,
     lastUpdated: 'Nov 12, 2023',
-    tags: ['collaboration', 'users', 'access'],
     relatedArticleIds: ['quick-start-guide'],
     sections: [
       {
         id: 'invite-process',
         title: 'How to invite users',
-        content: 'Navigate to **Settings > Team**. Enter the email addresses of the people you want to invite. They will receive an email with a magic link.'
+        content: '<p>Navigate to Settings > Team. Enter the email addresses of the people you want to invite. They will receive an email with a magic link.</p>'
       }
     ]
   },
@@ -79,18 +86,17 @@ export const ARTICLES: Article[] = [
     excerpt: 'Use our AI to write high-converting landing page copy automatically.',
     isPopular: true,
     lastUpdated: 'Dec 05, 2023',
-    tags: ['ai', 'copywriting', 'landing-page'],
     relatedArticleIds: [],
     sections: [
       {
         id: 'how-it-works',
         title: 'How the AI works',
-        content: 'SpouX uses advanced LLMs to analyze your value proposition and generate copy that speaks to your target audience\'s pain points.'
+        content: '<p>SpouX uses advanced LLMs to analyze your value proposition and generate copy that speaks to your target audience\'s pain points.</p>'
       },
       {
         id: 'prompts',
         title: 'Refining the output',
-        content: 'If you don\'t like the initial result, use the **"Regenerate"** button or provide a custom instruction like _"Make it more professional"_ or _"Focus on speed"_.'
+        content: '<p>If you don\'t like the initial result, use the "Regenerate" button or provide a custom instruction like "Make it more professional" or "Focus on speed".</p>'
       }
     ]
   },
@@ -101,13 +107,12 @@ export const ARTICLES: Article[] = [
     excerpt: 'Learn the fundamentals of splitting traffic to test different value props.',
     isPopular: true,
     lastUpdated: 'Jan 15, 2024',
-    tags: ['testing', 'optimization', 'conversion'],
     relatedArticleIds: ['using-ai-generator'],
     sections: [
       {
         id: 'concept',
         title: 'What is A/B Testing?',
-        content: 'A/B testing involves showing two variants of the same web page to different segments of website visitors at the same time and comparing which variant drives more conversions.'
+        content: '<p>A/B testing involves showing two variants of the same web page to different segments of website visitors at the same time and comparing which variant drives more conversions.</p>'
       }
     ]
   },
@@ -118,13 +123,12 @@ export const ARTICLES: Article[] = [
     excerpt: 'Connect SpouX to Slack, Notion, and your CRM.',
     isPopular: false,
     lastUpdated: 'Feb 10, 2024',
-    tags: ['api', 'slack', 'notion', 'crm'],
     relatedArticleIds: ['quick-start-guide'],
     sections: [
       {
         id: 'api-keys',
         title: 'Generating API Keys',
-        content: 'Go to your developer settings to generate a new API key. **Treat this key like a password.**'
+        content: '<p>Go to your developer settings to generate a new API key. Treat this key like a password.</p>'
       }
     ]
   }
