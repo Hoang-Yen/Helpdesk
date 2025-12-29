@@ -1,0 +1,95 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+
+const SHEET_ID = '11hVAosYOttycnlSgUIBHCOyA6XS38-LVZib3qjeDB5k';
+
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+) {
+  // Only allow GET requests
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    // Use CSV export URL instead of gviz (more reliable for server-side)
+    // Format: https://docs.google.com/spreadsheets/d/SHEET_ID/export?format=csv&gid=0
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; Node.js)'
+      }
+    });
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: `Google Sheets export error: ${response.statusText}`
+      });
+    }
+
+    const csv = await response.text();
+    if (!csv || csv.length < 10) {
+      return res.status(500).json({ error: 'Empty or invalid CSV response' });
+    }
+
+    // Parse CSV
+    const lines = csv.trim().split('\n');
+    if (lines.length < 2) {
+      return res.status(200).json({ data: [] });
+    }
+
+    // Parse header row
+    const headerLine = lines[0];
+    const headers = headerLine.split(',').map((h) => h.trim().toLowerCase());
+    const idIdx = headers.indexOf('id');
+    const titleIdx = headers.indexOf('title');
+    const categoryIdx = headers.indexOf('category');
+    const excerptIdx = headers.indexOf('excerpt');
+    const contentIdx = headers.indexOf('content');
+    const relatedIdx = headers.indexOf('related');
+    const updatedIdx = headers.indexOf('updatedat');
+
+    // Parse data rows
+    const articles = [];
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      const cells = line.split(',').map((cell) => cell.trim());
+      const id = cells[idIdx]?.replace(/^"|"$/g, '');
+      const title = cells[titleIdx]?.replace(/^"|"$/g, '');
+
+      if (!id || !title) continue;
+
+      articles.push({
+        id,
+        title,
+        categoryId: cells[categoryIdx]?.replace(/^"|"$/g, '') || 'getting-started',
+        excerpt: cells[excerptIdx]?.replace(/^"|"$/g, '') || '',
+        sections: [
+          {
+            id: 'content-main',
+            title: 'Content',
+            content: cells[contentIdx]?.replace(/^"|"$/g, '') || ''
+          }
+        ],
+        relatedArticleIds: cells[relatedIdx]
+          ? cells[relatedIdx]
+              .replace(/^"|"$/g, '')
+              .split(',')
+              .map((t) => t.trim())
+              .filter(Boolean)
+          : [],
+        lastUpdated: cells[updatedIdx]?.replace(/^"|"$/g, '') || new Date().toISOString().split('T')[0],
+        isPopular: false
+      });
+    }
+
+    return res.status(200).json({ data: articles });
+  } catch (error) {
+    console.error('Sheets sync error:', error);
+    return res.status(500).json({
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+}
